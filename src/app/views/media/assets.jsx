@@ -56,6 +56,8 @@ function ext(url) {
 const Assets = () => {
   const [assetList, setAssetList] = useState([]);
   const [keywords, setKeywords] = useState([]);
+  const [formData, setFormData] = useState([])
+  const [categorys, setCategorys] = useState([])
   const query = useQuery();
 
   useEffect(() => {
@@ -118,34 +120,80 @@ const Assets = () => {
       },
     },
     {
+      name: 'category',
+      label: 'Category',
+      options: {
+        filter: true,
+        display: true,
+        customBodyRenderLite: (dataIndex) => {
+          const item = assetList[dataIndex];
+          return (
+            <div className="flex items-center">
+              {item.category ? item.category.slug : "No category assigned"}
+            </div>
+          );
+        },
+        filterType: 'custom',
+        filterList: query.get('category') !== null ? [query.get('category')] : [],
+          filterOptions: {
+            display: () => {
+              return (
+                <div>
+                  <AsyncAutocomplete
+                   onChange={(newCategory) => {
+                  setCategorys(newCategory); ;
+                  }}
+                    size="small"
+                    value={categorys}
+                    label="category"
+                    debounced
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    getOptionLabel={(option) => option.id}
+                    multiple={true}
+                    asyncSearch={(searchTerm) => bc.registry().getAcademyCategories({like: searchTerm})}
+                  />
+                </div>
+              );
+            }
+          },
+      },
+
+      },
+
+    {
       name: 'keywords',
       label: 'Keywords',
       options: {
         filter: true,
         display: false,
         filterType: 'custom',
-        filterList: query.get('keywords') !== null ? [query.get('keywords')] : [],
+        filterList: query.get('seo_keywords') !== null ? [query.get('seo_keywords')] : [],
         filterOptions: {
-          display: (filterList, onChange, index, column) => {
+          display: () => {
             return (
               <div>
                 <AsyncAutocomplete
-                  onChange={(newKeywords) => {
-                    setKeywords(newKeywords);
-                    const slugs = newKeywords.map((i) => i.seo_keywords.map((x) => x.slug).join(',')).join(',');
-                    if (slugs !== '') filterList[index][0] = slugs;
-                    else filterList[index] = []
-                    onChange(filterList[index], index, column);
-                  }}
-                  value={keywords}
+                  onChange={(x) => {
+                    if(x.value === 'new_keyword') setKeywords({
+                        ...defaultKeyword,
+                        title: x.title.replace('Add keyword: ',""),
+                        slug: slugify(x.title.replace('Add keyword: ',""))
+                    })
+                    else setFormData(x)
+                }}
+                  value={formData}
                   size="small"
                   label="Keywords"
-                  debounced
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  getOptionLabel={(option) => `${option.title}`}
+                  getOptionLabel={(option) => option.title || `Search keywords or type a new one`}
                   multiple={true}
-                  asyncSearch={async (searchTerm) => await axios.get(`${config.REACT_APP_API_HOST}/v1/registry/academy/asset?keywords=${searchTerm}`)}
-                />
+                  asyncSearch={async (searchTerm) => {
+                    const resp = await bc.registry().getAllKeywords({ ...query, like: searchTerm })
+                    if(resp.status === 200){
+                        resp.data = [{title: 'Add keyword: '+ searchTerm, value: 'new_keyword'}, ...resp.data]
+                        return resp
+                    }
+                    else return resp
+                }}/>
               </div>
             );
           }
