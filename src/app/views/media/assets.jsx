@@ -17,6 +17,7 @@ import config from '../../../config.js';
 import { AsyncAutocomplete } from '../../components/Autocomplete';
 import { useQuery } from '../../hooks/useQuery';
 import axios from '../../../axios';
+import { Language } from '@material-ui/icons';
 
 
 toast.configure();
@@ -135,22 +136,23 @@ const Assets = () => {
       },
     },
     {
-      name: 'keywords',
+      name: 'seo_keywords',
       label: 'Keywords',
       options: {
         filter: true,
-        display: false,
+        display: true,
         filterType: 'custom',
-        filterList: query.get('keywords') !== null ? [query.get('keywords')] : [],
+        filterList: query.get('seo_keywords') !== null ? [query.get('seo_keywords')] : [],
         filterOptions: {
-          display: (filterList, onChange, index, column) => {
+          display: (filterList, onChange, index, column, dataIndex) => {
+            const asset = assetList[dataIndex];
             return (
               <div>
                 <AsyncAutocomplete
                   onChange={(newKeywords) => {
                     setKeywords(newKeywords);
-                    const slugs = newKeywords.map((i) => i.seo_keywords.map((x) => x.slug).join(',')).join(',');
-                    if (slugs !== '') filterList[index][0] = slugs;
+                    const slugs = asset.map((item) => item.seo_keywords);
+                    if (slugs == '') filterList[index][0] = slugs;
                     else filterList[index] = []
                     onChange(filterList[index], index, column);
                   }}
@@ -161,7 +163,7 @@ const Assets = () => {
                   isOptionEqualToValue={(option, value) => option.id === value.id}
                   getOptionLabel={(option) => `${option.title}`}
                   multiple={true}
-                  asyncSearch={async (searchTerm) => await axios.get(`${config.REACT_APP_API_HOST}/v1/registry/academy/asset?keywords=${searchTerm}`)}
+                  asyncSearch={async (searchTerm) => await axios.get(`${config.REACT_APP_API_HOST}/v1/registry/academy/keyword?like=${searchTerm}`)}
                 />
               </div>
             );
