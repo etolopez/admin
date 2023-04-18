@@ -326,6 +326,23 @@ class BreatheCodeClient {
                     `${this.host}/auth/academy/gitpod/user/${id}`,
                     user
                 ),
+            getGithubUsers: (query) => {
+                const qs = (typeof(query) == "string") ? query : serializeQuerystring(query);
+                return axios.bcGet(
+                    "Gitpod Users",
+                    `${this.host}/auth/academy/github/user${
+                        query ? `?${qs}` : ""
+                    }`
+                );
+            },
+            updateGithubUser: (id, payload) => {
+                if(Array.isArray(id)) id = `?id=${id.join(",")}`;
+                return axios.bcPut(
+                    "Invite",
+                    `${this.host}/auth/academy/github/user${id}`,
+                    payload
+                    );
+            },
             resendInvite: (user) =>
                 axios.bcPut(
                     "Invite",
@@ -472,7 +489,17 @@ class BreatheCodeClient {
                 return axios.bcPut(
                     "Send to CRM",
                     `${this.host}/marketing/academy/lead/process?id=${qs}`
-                )},
+                )
+            },
+            bulkUpdateLead: (ids, payload) => {
+                const idsString = ids.join(",");
+
+                return axios.bcPut(
+                    "Update Lead",
+                    `${this.host}/marketing/academy/lead?id=${idsString}`,
+                    payload
+                )
+            },
         };
     }
 
@@ -1108,6 +1135,12 @@ class BreatheCodeClient {
                     `${this.host}/registry/asset/thumbnail/${slug}`,
                     options
                 ),
+            createAssetPreview: async (slug, options) =>
+                await axios.bcPost(
+                    "Asset",
+                    `${this.host}/registry/academy/asset/${slug}/thumbnail`,
+                    options
+                ),
             getAsset: async (associatedSlug, options) =>
                 await axios.bcGet(
                     "Asset",
@@ -1119,6 +1152,13 @@ class BreatheCodeClient {
                 return await axios.bcGet(
                     "Asset",
                     `${this.host}/registry/academy/asset/${associatedSlug}/seo_report?${qs}`,
+                    options
+                )
+            },
+            getAssetOriginalityReport: async (associatedSlug, options, query) => {
+                return await axios.bcGet(
+                    "Asset",
+                    `${this.host}/registry/academy/asset/${associatedSlug}/originality`,
                     options
                 )
             },

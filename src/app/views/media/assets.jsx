@@ -18,6 +18,7 @@ import { AsyncAutocomplete } from '../../components/Autocomplete';
 import { useQuery } from '../../hooks/useQuery';
 import axios from '../../../axios';
 
+
 toast.configure();
 const toastOption = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -120,6 +121,21 @@ const Assets = () => {
       },
     },
     {
+      name: 'language',
+      label: 'Language',
+      options: {
+        filter: true,
+        display: false,
+        filterList:
+          query.get('language') !== null ? [query.get('language')] : [],
+        filterType: "dropdown",
+        display: false,
+        filterOptions: {
+          names: ['es', 'us']
+        }
+      },
+    },
+    {
       name: 'category',
       label: 'Category',
       options: {
@@ -167,7 +183,7 @@ const Assets = () => {
         filter: true,
         display: false,
         filterType: 'custom',
-        filterList: query.get('seo_keywords') !== null ? [query.get('seo_keywords')] : [],
+        filterList: query.get('keywords') !== null ? [query.get('keywords')] : [],
         filterOptions: {
           display: () => {
             return (
